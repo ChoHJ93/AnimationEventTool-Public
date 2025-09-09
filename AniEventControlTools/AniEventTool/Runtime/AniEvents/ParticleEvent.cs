@@ -8,7 +8,9 @@ using UnityEditor;
 namespace AniEventTool
 {
     using System.Threading;
+#if USE_UNITASK
     using Cysharp.Threading.Tasks;
+#endif
     using UnityEngine.VFX;
 
     [System.Serializable]
@@ -207,9 +209,15 @@ namespace AniEventTool
             {
                 SetEffectToAttachPoint(effectObj.transform, boneTr);
                 if (boneTr != null)
+#if USE_UNITASK
                     UpdateParticlePos(boneTr, ctUpdatePos.Token).Forget();
                 else
                     UpdateParticlePos(ctUpdatePos.Token).Forget();
+#else
+                    eventController.StartCoroutine(UpdateParticlePos(boneTr, ctUpdatePos.Token));
+                else
+                    eventController.StartCoroutine(UpdateParticlePos(ctUpdatePos.Token));
+#endif
             }
             else
             {
@@ -240,7 +248,11 @@ namespace AniEventTool
                     ctUpdatePos.Dispose();
                     ctUpdatePos = new CancellationTokenSource();
                 }
+#if USE_UNITASK
                 DelayDeactiveParticle(ctUpdatePos.Token).Forget();
+#else
+                eventController.StartCoroutine(DelayDeactiveParticle(ctUpdatePos.Token));
+#endif
             }
             else
                 DespawnEffect(EffectComponent);
@@ -344,6 +356,7 @@ namespace AniEventTool
 
             effectTr.rotation = parentRot * Quaternion.Euler(addedRotation.x, addedRotation.y, addedRotation.z);
         }
+#if USE_UNITASK
         async UniTask UpdateParticlePos(Transform boneTr, CancellationToken ct)
         {
             float time = 0;
@@ -374,6 +387,41 @@ namespace AniEventTool
             }
         }
 
+#else
+        IEnumerator UpdateParticlePos(Transform boneTr, CancellationToken ct)
+        {
+            float time = 0;
+            while (effectObj.activeSelf && boneTr != null)
+            {
+                SetEffectToAttachPoint(effectObj.transform, boneTr);
+                yield return new WaitForFixedUpdate();
+                if (ct.IsCancellationRequested)
+                    yield break;
+                time += Time.fixedDeltaTime;
+                if (detachTime > 0 && time > detachTime)
+                    break;
+            }
+        }
+
+        IEnumerator UpdateParticlePos(CancellationToken ct)
+        {
+            Transform effectTr = effectObj.transform;
+            Vector3 relatedPos = ControllerTr.InverseTransformPoint(ControllerPos, ControllerRot, Vector3.one, effectTr.position);
+            Quaternion relatedRot = Quaternion.Inverse(ControllerRot) * effectTr.rotation;
+            float time = 0;
+            while (effectTr.gameObject.activeSelf)
+            {
+                effectTr.position = ControllerPos + ControllerRot * relatedPos;
+                effectTr.rotation = ControllerRot * relatedRot;
+                yield return new WaitForFixedUpdate();
+                if (ct.IsCancellationRequested)
+                    yield break;
+                time += Time.fixedDeltaTime;
+                if (detachTime > 0 && time > detachTime)
+                    break;
+            }
+        }
+#endif
         private void DespawnEffect(EffectEventComponent targetObj)
         {
             if (targetObj == null) return;
@@ -392,6 +440,7 @@ namespace AniEventTool
                 pool.Push(targetObj);
             }
         }
+#if USE_UNITASK
         async UniTask DelayDeactiveParticle(CancellationToken ct)
         {
             await UniTask.Delay((int)(lifeTime * 1000), cancellationToken: ct);
@@ -408,6 +457,35 @@ namespace AniEventTool
 
             DespawnEffect(EffectComponent);
         }
+#else
+        IEnumerator DelayDeactiveParticle(CancellationToken ct)
+        {
+            float time = 0;
+            while (time < lifeTime)
+            {
+                if (ct.IsCancellationRequested)
+                    yield break;
+                time += Time.deltaTime;
+                yield return null;
+            }
+            if (effectObj == null || effectObj.activeSelf == false)
+                yield break;
+            if (deactiveLoop)
+            {
+                EffectComponent.SetParticleLoopValue(false);
+                time = 0;
+                while (time < loopLifeTime)
+                {
+                    if (ct.IsCancellationRequested)
+                        yield break;
+                    time += Time.deltaTime;
+                    yield return null;
+                }
+                EffectComponent.SetParticleLoopValue(true);
+            }
+            DespawnEffect(EffectComponent);
+        }
+#endif
 
         #endregion
 
