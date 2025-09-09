@@ -84,7 +84,7 @@ namespace AniEventTool.Editor
 
             if (GUI.Button(buttonRect, EditorGUIUtility.IconContent("CreateAddNew"), CustomGUIStyles.eventAddButton))
             {
-                Type[] allEventTypes = CommonUtil.GetLeafDerivedTypes(typeof(AniEventBase));
+                Type[] allEventTypes = CommonUtil.GetLeafDerivedTypesInEditor(typeof(AniEventBase));
                 if (allEventTypes.IsNullOrEmpty())
                     return;
                 List<ContextMenuItem> menuItems = new List<ContextMenuItem>();

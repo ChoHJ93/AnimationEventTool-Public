@@ -182,7 +182,7 @@ namespace AniEventTool.Editor
         private static AniEventTrackBase CreateEventTrackAsset<T>(T aniEvent, AniEventGroup parentGroup = null) where T : AniEventBase
         {
             AniEventTrackBase trackAsset = null;
-            Type[] eventTrackTypes = CommonUtil.GetLeafDerivedTypes(typeof(AniEventTrackBase));
+            Type[] eventTrackTypes = CommonUtil.GetLeafDerivedTypesInEditor(typeof(AniEventTrackBase));
 
             //set trackAsset as instance of type that matches with aniEvent
             foreach (Type type in eventTrackTypes)
@@ -243,7 +243,7 @@ namespace AniEventTool.Editor
         {
 
             EventTrackGUIBase eventTrackGUI = null;
-            Type[] eventTrackGUITypes = CommonUtil.GetLeafDerivedTypes(typeof(EventTrackGUIBase));
+            Type[] eventTrackGUITypes = CommonUtil.GetLeafDerivedTypesInEditor(typeof(EventTrackGUIBase));
 
             foreach (Type type in eventTrackGUITypes)
             {
