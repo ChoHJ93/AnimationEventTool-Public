@@ -13,9 +13,10 @@ namespace AniEventTool
 
     public static class CommonUtil
     {
+        [Obsolete]
         /// <summary>
-        /// [Editor������ ���] baseType�� ��� �Ļ� Ÿ���� �����ɴϴ�. (�ٴܰ� ����� ���ܸ�, �߻� ����)
-        /// <para>** ��������� ������</para>
+        /// [Editor에서만 사용] baseType의 모든 파생 타입을 가져옵니다. (다단계 상속의 말단만, 추상 제외)
+        /// <para>** 상대적으로 가벼움</para>
         /// </summary>
         /// <param name="baseType"></param>
         /// <param name="extraExcludes"></param>
@@ -39,8 +40,8 @@ namespace AniEventTool
         }
 
         /// <summary>
-        /// [��Ÿ�ӿ��� ���] baseType�� ��� �Ļ� Ÿ���� �����ɴϴ�. (�ٴܰ� ����� ���ܸ�, �߻� ����) 
-        /// <para>** ���ſ�</para>
+        ///  baseType의 모든 파생 타입을 가져옵니다. (다단계 상속의 말단만, 추상 제외) 
+        /// <para>** 무거움</para>
         /// </summary>
         /// <param name="baseType"></param>
         /// <param name="fromEntireSolution"></param>
@@ -51,11 +52,11 @@ namespace AniEventTool
         {
             if (baseType == null) throw new ArgumentNullException(nameof(baseType));
 
-            Assembly[] targetAssemblies = fromEntireSolution ? AppDomain.CurrentDomain.GetAssemblies(): new[] { baseType.Assembly };
+            Assembly[] targetAssemblies = fromEntireSolution ? AppDomain.CurrentDomain.GetAssemblies() : new[] { baseType.Assembly };
 
             var excluded = new HashSet<Type>(extraExcludes ?? Array.Empty<Type>())
         {
-            baseType,              // �ڱ� �ڽ� ����
+            baseType,              // 자기 자신 제외
             typeof(AniEventGroup)
         };
 
@@ -81,7 +82,7 @@ namespace AniEventTool
 
                 foreach (Type t in types)
                 {
-                    if (t.IsAbstract || excluded.Contains(t) || baseType.IsAssignableFrom(t)) 
+                    if (t.IsAbstract || excluded.Contains(t) || baseType.IsAssignableFrom(t))
                         continue;
 
                     candidates.Add(t);
@@ -97,8 +98,8 @@ namespace AniEventTool
         }
 
         /// <summary>
-        /// baseType�� ��� �Ļ� Ÿ���� �����ɴϴ�. (�ٴܰ� ��� ����, �߻� ����)
-        /// <para>** ���ſ�</para>
+        /// baseType의 모든 파생 타입을 가져옵니다. (다단계 상속 포함, 추상 제외)
+        /// <para>** 무거움</para>
         /// </summary>
         /// <param name="baseType"></param>
         /// <param name="fromEntireSolution"></param>
@@ -217,7 +218,7 @@ namespace AniEventTool
             JsonObject root = new JsonObject(JsonObject.Type.OBJECT);
 
             JsonObject eventTypesObj = new JsonObject(JsonObject.Type.ARRAY);
-            Type[] eventTypes = GetLeafDerivedTypesInEditor(typeof(AniEventBase));
+            Type[] eventTypes = GetDerivedTypesFor(typeof(AniEventBase));
             foreach (Type eventType in eventTypes)
             {
                 eventTypesObj.Add(eventType.Name);
