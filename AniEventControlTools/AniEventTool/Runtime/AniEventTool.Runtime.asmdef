@@ -1,0 +1,17 @@
+{
+    "name": "AniEventTool.Runtime",
+    "rootNamespace": "AniEventTool",
+    "references": [
+        "GUID:ab771f4be2a1ae44b82c626cd8806fec",
+        "GUID:f51ebe6a0ceec4240a699833d6309b23"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
